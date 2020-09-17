@@ -1,0 +1,600 @@
+function makeTippy (node, text){
+  var ref = node.popperRef();
+   // unfortunately, a dummy element must be passed
+   // as tippy only accepts a dom element as the target
+   // https://github.com/atomiks/tippyjs/issues/661
+   var dummyDomEle = document.createElement('div');
+   var tip = tippy( dummyDomEle, {
+    onCreate: function(instance){ // mandatory
+     // patch the tippy's popper reference so positioning works
+     // https://atomiks.github.io/tippyjs/misc/#custom-position
+     instance.popperInstance.reference = ref;
+    },
+    lazy: false, // mandatory
+    trigger: 'manual', // mandatory
+    // dom element inside the tippy:
+    content: function(){ // function can be better for performance
+     var div = document.createElement('div');
+     div.innerHTML = text;
+     return div;
+    },
+    // your own preferences:
+    arrow: true,
+    placement: 'bottom',
+    hideOnClick: false,
+    multiple: true,
+    sticky: true
+   } );
+   return tip;
+  };
+ 
+  document.addEventListener('DOMContentLoaded', function () {
+   window.tippers = [];
+   window.cyGraph = cytoscape({
+    container: document.querySelector('#cy'),
+      boxSelectionEnabled: false,
+     autounselectify: true,
+      style: cytoscape.stylesheet()
+       .selector('node')
+          .css({
+          'content': 'data(id)',
+             'text-valign': 'center',
+            'color': 'white',
+            'text-outline-width': 2,
+            'background-color': '#999',
+            'text-outline-color': '#999'
+          })
+       .selector('edge')
+         .css({
+          'label' : 'data(weight)',
+             'curve-style': 'bezier',
+             'target-arrow-shape': 'triangle',
+             'target-arrow-color': '#ccc',
+             'line-color': '#ccc',
+             'width': 1
+       })
+    .selector(':selected')
+      .css({
+        'background-color': 'black',
+        'line-color': 'black',
+        'target-arrow-color': 'black',
+        'source-arrow-color': 'black'
+      })
+      .selector('.highlighted')
+      .style({
+        'background-color': '#61bffc',
+        'line-color': '#61bffc',
+        'target-arrow-color': '#61bffc',
+        'transition-property': 'background-color, line-color, target-arrow-color',
+        'transition-duration': '0.5s'
+      })
+       .selector('.finalPathHighlighted')
+      .style({
+        'background-color': '#8B0000',
+        'line-color': '#8B0000',
+        'target-arrow-color': '#8B0000',
+        'transition-property': 'background-color, line-color, target-arrow-color',
+        'transition-duration': '0.5s'
+      })
+    .selector('.faded')
+      .css({
+        'opacity': 0.25,
+        'text-opacity': 0
+      }),
+  elements: {
+    nodes: [
+      { data: { id: 'A', name: 'A', weight: '0' }, position: { x: 103.125, y: 125 } },
+      { data: { id: 'B', name: 'B', weight: '0' }, position: { x: 249.375, y: 170 } },
+      { data: { id: 'C', name: 'C', weight: '0' }, position: { x: 581.875, y: 125 } },
+      { data: { id: 'D', name: 'D', weight: '0' }, position: { x: 535.625, y: 110 } },
+      { data: { id: 'E', name: 'E', weight: '0' }, position: { x: 103.125, y: 375 } },
+      { data: { id: 'F', name: 'F', weight: '0' }, position: { x: 249.375, y: 315 } },
+      { data: { id: 'G', name: 'G', weight: '0' }, position: { x: 415.625, y: 375 } }
+    ],
+    edges: [
+      { data: { id: 'AC', source: 'A', target: 'C', weight: '100' } },
+      { data: { id: 'AB', source: 'A', target: 'B', weight: '3' } },
+      { data: { id: 'AD', source: 'A', target: 'D', weight: '4' } },
+      { data: { id: 'DC', source: 'D', target: 'C', weight: '3' } },
+      { data: { id: 'DE', source: 'D', target: 'E', weight: '8' } },
+      { data: { id: 'EF', source: 'E', target: 'F', weight: '10' } },
+      { data: { id: 'BG', source: 'B', target: 'G', weight: '9' } },
+      { data: { id: 'EG', source: 'E', target: 'G', weight: '50' } }
+    ]
+  },
+      position: { // the model position of the node (optional on init, mandatory after)
+        x: 100,
+        y: 100
+      },
+      grabbable: false, // whether the node can be grabbed and moved by the user
+ 
+  layout: {
+    name: 'preset',//grid',
+    padding: 10
+  }
+});
+cyGraph.on('tap', 'node', function(e){
+  var node = e.cyTarget;
+  var neighborhood = node.neighborhood().add(node);
+  cyGraph.elements().addClass('faded');
+  neighborhood.removeClass('faded');
+});
+cyGraph.on('tap', function(e){
+  if( e.cyTarget === cy ){
+    cyGraph.elements().removeClass('faded');
+  }
+});
+  document.getElementById('myfile').addEventListener('change', handleFileSelect, false);
+cyGraph.panningEnabled( false );
+cyGraph.userPanningEnabled(false);
+cyGraph.zoomingEnabled( false );
+cyGraph.userZoomingEnabled( false );
+cyGraph.boxSelectionEnabled( false );
+
+  var a = cyGraph.getElementById('A');
+  var b = cyGraph.getElementById('B');
+  var c = cyGraph.getElementById('C');
+  var d = cyGraph.getElementById('D');
+  var e = cyGraph.getElementById('E');
+  var f = cyGraph.getElementById('F');
+  var g = cyGraph.getElementById('G');
+   var tippyA = makeTippy(a, '0');
+   tippyA.show();
+   var tippyB = makeTippy(b, 'inf');
+   tippyB.show();
+   var tippyC = makeTippy(c, 'inf');
+   tippyC.show();
+   var tippyD = makeTippy(d, 'inf');
+   tippyD.show();
+   var tippyE = makeTippy(e, 'inf');
+   tippyE.show();
+   var tippyF = makeTippy(f, 'inf');
+   tippyF.show();
+   var tippyG = makeTippy(g, 'inf');
+   tippyG.show();
+ 
+   window.tippers = [];
+   window.tippers.push({'name': 'A', 'tippy': tippyA});
+   window.tippers.push({'name': 'B', 'tippy': tippyB});
+   window.tippers.push({'name': 'C', 'tippy': tippyC});
+   window.tippers.push({'name': 'D', 'tippy': tippyD});
+   window.tippers.push({'name': 'E', 'tippy': tippyE});
+   window.tippers.push({'name': 'F', 'tippy': tippyF});
+   window.tippers.push({'name': 'G', 'tippy': tippyG});
+ updateAlgorithm();
+});
+function resetToUnhighlighted (){
+ //TODO: unhighlight (reset) all the graph
+ let allNodes = window.cyGraph.nodes();
+ let numOfNodes = allNodes.length;
+ 
+ for (let n = 0; n<numOfNodes; n++){
+  allNodes[n].removeClass('highlighted');
+  allNodes[n].removeClass('finalPathHighlighted');
+ }
+ 
+ let allEdges = window.cyGraph.edges();
+ let numOfEdges = allEdges.length;
+ for (let e = 0; e<numOfEdges; e++){
+  allEdges[e].removeClass('highlighted');
+  allEdges[e].removeClass('finalPathHighlighted');
+ }
+ 
+}
+function highlightThis (whatToHighlight){
+ 
+ resetToUnhighlighted ();
+ var i = 0;
+ var finalPath = false;
+ 
+ let speedChoice = document.getElementById('speedChoice');
+ var timer =  speedChoice.options[speedChoice.selectedIndex].value;
+ document.getElementById('algoInfo').innerHTML = window.algoSection[1];
+ 
+ var highlightNextEle = function(){
+    if( i < whatToHighlight.length ){
+   if(whatToHighlight[i]==='unhighlight:'){
+    i++;
+    //console.log(whatToHighlight[i]);
+    whatToHighlight[i].removeClass('highlighted');
+    //console.log("reached unhighlight!")
+ } else if (whatToHighlight[i]==='tipper:'){
+  i++;
+  let tippInfo = whatToHighlight[i];
+  editTipper(tippInfo[0], tippInfo[1]);
+   } else if (whatToHighlight[i]==='finalPath'){
+   
+    finalPath = true;
+    timer = 10;
+   
+   } else if (!finalPath){
+    whatToHighlight[i].addClass('highlighted');
+   } else{
+     document.getElementById('algoInfo').innerHTML = window.algoSection[0]+window.algoSection[1];
+    whatToHighlight[i].removeClass('highlighted');
+        whatToHighlight[i].addClass('finalPathHighlighted');
+   }
+      setTimeout(highlightNextEle, timer);
+      i++;
+    
+    }
+ };
+ // kick off first highlight
+ highlightNextEle();
+ 
+}
+function makeOwnGraph(){
+ 
+ let textArea = document.getElementById("makingGraphInfo");
+ if (textArea.style.display==="none"){
+ 
+  let infomessage = "Want to create your Graph? Open the folder 'load graphs from here' and create a file there. \n";
+  infomessage = infomessage + "The file should be in the format: \n";
+  infomessage = infomessage + "{ \"group\": \"nodes\", \"data\": { \"id\": \"node1IDHere\",";
+  infomessage = infomessage + "\"name\": \"node1NameHere\" }, \"position\": { \"x\": 500.625, \"y\": 324 } }#\n";
+  infomessage = infomessage + "{ \"group\": \"nodes\", \"data\": { \"id\": \"node2IDHere\",";
+  infomessage = infomessage + "\"name\": \"node2NameHere\" }, \"position\": { \"x\": 600.625, \"y\": 350 } }#\n";
+  infomessage = infomessage + "for nodes (IDs should not contain '-')\n"
+  infomessage = infomessage + "(note: x and y are used in the A* algorithm calculations as well as general visualisation for all the algorithms)\n";
+  infomessage = infomessage + "and in the format: \n"
+  infomessage = infomessage + "{ \"group\": \"edges\", \"data\": { \"id\": \"sourceID+targetID\"";
+  infomessage = infomessage + ", \"name\": \"edgeNameHere\", \"source\": \"sourceNodeIDGoesHere\","
+  infomessage = infomessage + "\"target\": \"endNodeIDGoesHere\", \"weight\": 100} }# ";
+  infomessage = infomessage + "for edges (weight value should not be in quotes). \n Each edge should have an id that is the source ID followed by the goal ID \n";
+  infomessage = infomessage + "e.g. 'AH' if the edge goes from 'A' to 'H') \n";
+  infomessage = infomessage + "Make sure both nodes and edges are separated by '#' otherwise it will not load properly. \n"
+  infomessage = infomessage + "Final line should not have a '#' after it\n";
+  infomessage = infomessage + "Click the button again to make this info disappear (and then click again to make it reappear)";
+ 
+  document.getElementById("makingGraphInfo").innerHTML = infomessage;
+  textArea.style.display="block";
+ 
+  document.getElementById("algoInfo").style.display="none";
+ } else{
+ 
+  textArea.style.display="none";
+  document.getElementById("algoInfo").style.display="block";
+ }
+ 
+ }
+ function updateAlgorithm(){
+ 
+ let algoChoice = document.getElementById('algoChoice');
+ let algoChosen = algoChoice.options[algoChoice.selectedIndex].value;
+ getAlgorithmMessages(algoChosen);
+ document.getElementById('algoInfo').innerHTML = window.algoSection[0];
+ 
+ }
+ 
+function start(){
+let fileName = document.getElementById('myfile');
+let algoChoice = document.getElementById('algoChoice');
+let startNode = document.getElementById("startNode").value;
+document.getElementById("pathInfo").style.display="block";
+if (startNode===''){
+ console.log('Start node is required! Fill it in before pressing start again!');
+ alert('Start node is required! Fill it in before pressing start again!');
+} else{
+ 
+let endNode = document.getElementById("endNode").value;
+if (setNewStartNode(startNode)){
+ 
+ let algoChosen = algoChoice.options[algoChoice.selectedIndex].value;
+ let theGraph = createJSGraph();
+getAlgorithmMessages(algoChosen);
+ if (algoChosen === '1'){ // Dijkstra's algorithm
+ 
+let paths = theGraph.dijkAlgoWithVisual(startNode, endNode);
+let paths0 = paths[0];
+document.getElementById('algoInfo').innerHTML = window.algoSection[0];
+document.getElementById("pathInfo").innerText = "Path is: " + paths0;
+let highlightingPath = paths[1];
+let maxf = highlightingPath.length;
+let toHighlight = [];
+for (let f = 0; f < maxf; f++){
+ let id = highlightingPath[f];
+ if (id==='unhighlight:'){
+ toHighlight.push(id);
+ } else if (id==='tipper:'){
+   toHighlight.push(id);
+   f++;
+   id = highlightingPath[f];
+   toHighlight.push(id);
+ } else{
+  toHighlight.push(window.cyGraph.$('#'+id));
+ }
+ 
+}
+toHighlight.push("finalPath");
+let startN = paths0[0];
+let endN = paths0[1];
+let maxh = paths0.length - 1;
+toHighlight.push(window.cyGraph.$('#'+startN));
+toHighlight.push(window.cyGraph.$('#'+startN+endN))
+for (let h = 1; h < maxh; h++){
+  startN = paths0[h];
+ endN = paths0[h+1];
+ toHighlight.push(window.cyGraph.$('#'+startN));
+ toHighlight.push(window.cyGraph.$('#'+startN+endN));
+}
+toHighlight.push(window.cyGraph.$('#'+endN));
+highlightThis (toHighlight);
+ 
+ } else if (algoChosen === '2'){ // Dijkstra's partitioned algorithm
+ 
+//TODO
+ 
+ } else { // A* Algorithm
+ 
+  if (endNode === ''){
+   console.log('End node is required for the A* algorithm! Fill it in before pressing start again!');
+   alert('End node is required for the A* algorithm! Fill it in before pressing start again!');
+  } else{
+ 
+   let paths = astarAlgoVisual(theGraph, startNode, endNode);
+   let visualPath = paths[2];
+ 
+   let maxf = visualPath.length;
+ 
+ let toHighlight = [];
+for (let f = 0; f < maxf; f++){
+ let id = visualPath[f];
+ if (id==='unhighlight:'){
+ toHighlight.push(id);
+ } else if (id==='tipper:'){
+   toHighlight.push(id);
+   f++;
+   id = visualPath[f];
+   toHighlight.push(id);
+ } else{
+  toHighlight.push(window.cyGraph.$('#'+id));
+ }
+ 
+}
+toHighlight.push("finalPath");
+let paths0 = paths[0];
+if (paths0!==false) {
+ document.getElementById("pathInfo").innerText = "Path is: " + paths0;
+ let startN = paths0[0];
+let endN = paths0[1];
+let maxh = paths0.length - 1;
+toHighlight.push(window.cyGraph.$('#'+startN));
+toHighlight.push(window.cyGraph.$('#'+startN+endN))
+for (let h = 1; h < maxh; h++){
+  startN = paths0[h];
+ endN = paths0[h+1];
+ toHighlight.push(window.cyGraph.$('#'+startN));
+ toHighlight.push(window.cyGraph.$('#'+startN+endN));
+}
+toHighlight.push(window.cyGraph.$('#'+endN));
+ 
+} else {
+ document.getElementById("pathInfo").innerText = "Path is: There is no path between the start and end nodes selected";
+}
+ 
+   highlightThis (toHighlight);
+ 
+  }
+ 
+ }
+ 
+} else{
+  console.log('An EXISTING start node is required! (Please check your spelling before trying again)');
+  alert('An EXISTING start node is required! (Please check your spelling before trying again)');
+}
+}
+}
+function handleFileSelect(event){
+  const reader = new FileReader()
+  reader.onload = handleFileLoad;
+  reader.readAsText(event.target.files[0])
+}
+function handleFileLoad(event){
+ 
+//  document.getElementById('fileContent').textContent = event.target.result;
+let fileInsides = event.target.result;
+let newElements = '{' + fileInsides + '}';
+let removedNodes = cyGraph.remove(cyGraph.nodes());
+cyGraph.add(newElements);
+cyGraph._private.options.elements = newElements;
+let ar = fileInsides.split('#');
+let max1 = ar.length;
+for (let i = 0; i<max1;i++){
+cyGraph.add(JSON.parse(ar[i]));
+}
+removeOldTippers();
+makeNewTippers();
+}
+function editTipper(nodeId, distance){
+ 
+ let maxi = window.tippers.length;
+ for (let i = 0; i<maxi; i++){
+ 
+  let nameTip = window.tippers[i].name.toLowerCase();
+  if (nameTip===nodeId.toLowerCase()){
+   window.tippers[i].tippy.popper.innerText = distance;
+  }
+ }
+}
+function getAlgorithmMessages(algorithmnSelection){
+ 
+ window.algoSection = [];
+ 
+ console.log(algorithmnSelection);
+ let messagePart = "";
+ if (algorithmnSelection === '1'){ // Dijkstra's algorithm
+ 
+  //http://www.gitta.info/Accessibiliti/en/html/Dijkstra_learningObject1.html
+  messagePart = "// Initialization \n";
+  messagePart = messagePart + "for each vertex v in Graph: \n"
+   + " // initial distance from source to vertex v is set to infinite \n"
+   + " dist[v] := infinity \n"
+   + " // Previous node in optimal path from source \n"
+   + " previous[v] := undefined \n"
+   + "END FOR \n"
+   + "// Distance from source to source \n"
+   + "dist[source] := 0 \n"
+   + " // all nodes in the graph are unoptimized - thus are in Q \n"
+   + "Q := the set of all nodes in Graph \n";
+  algoSection.push(messagePart);
+  messagePart = "while Q is not empty: // main loop \n";
+  messagePart = messagePart + "u := node in Q with smallest dist[ ] \n"
+   + "remove u from Q \n"
+   + "for each neighbor v of u:  // where v has not yet been removed from Q. \n"
+   + "alt := dist[u] + dist_between(u, v) \n"
+   + "if alt < dist[v] // Relax (u,v)\n"
+   + "dist[v] := alt \n"
+   + "previous[v] := u \n"
+   + "END IF \n"
+   + "END FOR \n"
+   + "END WHILE \n"
+   + "return previous[ ]";
+  
+  algoSection.push(messagePart);
+ 
+ } else if (algorithmnSelection === '2'){ // Dijkstra's partitioned algorithm
+ 
+ } else { // A* Algorithm
+ 
+  messagePart = "function A*(start, goal) \n"
+  + " open_list = set containing start \n"
+  + " closed_list = empty set \n"
+  + " start.g = 0 \n"
+  + " start.f = start.g + heuristic(start, goal) \n";
+ 
+  algoSection.push(messagePart);
+ 
+  messagePart = " while open_list is not empty \n";
+  messagePart = messagePart + " current = open_list element with lowest f cost \n"
+  + " if current = goal \n"
+  + "  return construct_path(goal) // path found \n"
+  + " remove current from open_list \n"
+  + " add current to closed_list \n"
+  + " for each neighbor in neighbors(current) \n"
+  + "   if neighbor not in closed_list \n"
+  + "    neighbor.f = neighbor.g + heuristic(neighbor, goal) \n"
+  + "    if neighbor is not in open_list \n"
+  + "     add neighbor to open_list \n"
+  + "    else \n"
+  + "     openneighbor = neighbor in open_list \n"
+  + "     if neighbor.g < openneighbor.g \n"
+  + "        openneighbor.g = neighbor.g \n"
+  + "        openneighbor.parent = neighbor.parent \n"
+  + " return false // no path exists \n \n";
+ 
+  messagePart = messagePart + "function neighbors(node) \n"
+  + "  neighbors = set of valid neighbors to node // check for obstacles here \n"
+  + "  for each neighbor in neighbors \n"
+  + "    neighbor.g = node.g + cost \n"
+  + "    neighbor.parent = node \n"
+  + "  END FOR \n"
+  + "  return neighbors \n \n";
+ 
+  messagePart = messagePart + "function construct_path(node) \n";
+  messagePart = messagePart + "  path = set containing node \n";
+  messagePart = messagePart + "  while node.parent exists \n";
+  messagePart = messagePart + "    node = node.parent \n";
+  messagePart = messagePart + "    add node to path \n";
+  messagePart = messagePart + "  END WHILE \n";
+  messagePart = messagePart + "  return path";
+ 
+  algoSection.push(messagePart);
+ 
+ }
+ 
+}
+/**
+ Setting tippers to be inf if they aren't for the start node and 0 if it is
+*/
+function setNewStartNode(startNode) {
+ 
+ let toReturn = false;
+ let maxi = window.tippers.length;
+ for (let i = 0; i<maxi; i++){
+ 
+  let nameTip = window.tippers[i].name.toLowerCase();
+  if (nameTip===startNode.toLowerCase()){
+   window.tippers[i].tippy.popper.innerText = '0';
+   toReturn = true;
+  } else{
+   window.tippers[i].tippy.popper.innerText = 'inf';
+  }
+ }
+ 
+ return toReturn;
+}
+/**
+ Removes all the existing tippers
+*/
+function removeOldTippers(){
+ let maxi = window.tippers.length;
+ for (i = 0; i<maxi; i++){
+  window.tippers[i].tippy.destroy();
+ }
+ window.tippers = [];
+}
+function makeNewTippers(){
+ let nodes = cyGraph.nodes();
+ let maxi = nodes._private.map.size;
+ let iterator1 = nodes._private.map.keys();
+ 
+ for (let i = 0; i<maxi; i++){
+ 
+  let id = iterator1.next().value;
+ 
+  var a = cyGraph.getElementById(id);
+  var tippyA = makeTippy(a, 'inf');
+  tippyA.show();
+ 
+  window.tippers.push({'name': id, 'tippy': tippyA});
+ }
+}
+/*
+function readTextFile(file)
+{
+    var rawFile = new XMLHttpRequest();
+    rawFile.open("GET", file, false);
+    rawFile.onreadystatechange = function ()
+    {
+        if(rawFile.readyState === 4)
+        {
+            if(rawFile.status === 200 || rawFile.status == 0)
+            {
+                var allText = rawFile.responseText;
+                alert(allText);
+            }
+        }
+    }
+    rawFile.send(null);
+}
+*/
+function createJSGraph(){
+ 
+ let g = new Graph();
+ let nodes = cyGraph.nodes();
+ let maxi = nodes._private.map.size;
+ let iterator1 = nodes._private.map.keys();
+ 
+ for (let i = 0; i<maxi; i++){
+ 
+  let id = iterator1.next().value;
+ 
+    if((typeof(id) !== 'undefined') && (id.indexOf('-')===-1)){
+     let xy = nodes[i]._private.position;
+ 
+     g.addNode(id, xy.x, xy.y);
+    
+    }
+ }
+ 
+ let edges = cyGraph.edges();
+ let maxj = edges.length;
+ 
+ for (let j = 0; j<maxj; j++){
+ 
+  let singleEdge = edges[j]._private.data;
+  g.addEdge(singleEdge.source, singleEdge.target, Number(singleEdge.weight));
+ }
+ 
+ return g;
+}

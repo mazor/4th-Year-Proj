@@ -1,0 +1,725 @@
+/**
+Used as the heap where nodes with the lowest 'distanceFromSource' are first (0 being the least and null being used as 'infinity')
+First node is placed in index 1.
+For a parent with index i:
+ - The left child of each node is at index (i * 2).
+ - The right child is at index (i * 2 + 1)
+*/
+class MinHeapVertex {
+   
+ /**
+ Initialises the array for the heap. A 'dummy element' (null) is placed at index 0
+ */
+ constructor () {
+  this.heap = [null]
+ }
+   
+ /**
+ Returns the min element in the heap (at index 1 in the array)
+ */
+ getMin () {
+  return this.heap[1];
+ }
+   
+ /**
+ Inserts a vertex into the heap.
+ */
+ insert(vertex) {
+  this.heap.push(vertex); // vertex is added to the end of the heap
+  if (vertex.priority !== null){ //if the vertex has a defined distanceFromSource
+   
+   let currentNodeIdx = this.heap.length - 1;
+   let currentNodeParentIdx = Math.floor(currentNodeIdx / 2);
+       while ( 
+         this.heap[currentNodeParentIdx] &&
+         vertex.priority < this.heap[currentNodeParentIdx].priority
+       ) { // while there is a parent and vertex has a smaller distance from the source node than it, bubble up
+         const parentNodeP = this.heap[currentNodeParentIdx];
+    // swap child and parent
+         this.heap[currentNodeParentIdx] = vertex;
+         this.heap[currentNodeIdx] = parentNodeP;
+    // set new indexes
+         currentNodeIdx = currentNodeParentIdx;
+         currentNodeParentIdx = Math.floor(currentNodeIdx / 2);
+       }
+   let maxL = this.heap.length -1;
+   this.updateHeap(maxL);
+   
+  }
+      
+ }
+ 
+ /**
+ Removes and returns the minimum vertex in the heap. Updates heap accordingly.
+ */
+ remove() {
+   
+  // if either the heap is 'empty' (null value at 0) or has one vertex in it (plus the null value)
+  if (this.heap.length < 3) {
+     const toReturn = this.heap.pop();
+     this.heap[0] = null;
+     return toReturn;
+   
+  } else {
+   const toRemove = this.heap[1];
+   this.heap[1] = this.heap.pop();
+   let maxL = this.heap.length -1;
+   this.updateHeap(maxL);
+     return toRemove;
+ 
+  }
+ }
+ 
+ /**
+  Updates the heap starting at the index given and bubbling up
+ */
+ updateHeap(currentIdx){  
+  if(currentIdx>1){
+ 
+   let parentIndx = 1;      
+       let siblingIndx = 1;
+     
+       if(currentIdx % 2 == 0){ // if it is the left child of its parent
+    parentIndx = currentIdx/2;
+    siblingIndx = parentIndx * 2 +1;
+       } else {
+    parentIndx = (currentIdx-1)/2;
+    siblingIndx = parentIndx * 2;
+    
+       }
+     
+   // assign parent and both children nodes
+   let aParentNode = this.heap[parentIndx];
+   let siblingNode = this.heap[siblingIndx];
+   let currentNode = this.heap[currentIdx];
+   if ((currentNode.priority!==null) &&
+    ((currentNode.priority < aParentNode.priority) || (aParentNode.priority===null))){
+       this.heap[parentIndx] = currentNode;
+        this.heap[currentIdx] = aParentNode;
+       }
+     
+       aParentNode = this.heap[parentIndx];
+     
+   if (siblingNode && siblingNode.priority!==null &&
+    ((siblingNode.priority < aParentNode.priority)|| (aParentNode.priority===null))) {
+    this.heap[parentIndx] = siblingNode;
+       this.heap[siblingIndx] = aParentNode;
+       }
+      this.updateHeap(parentIndx);
+     
+    }
+ 
+   }
+ 
+}
+/**
+Used to represent the nodes
+*/
+class Vertex {
+ constructor(name, x, y) {
+ 
+  this.name = name;
+  this.distanceFromSource = null;
+  this.priority = null;
+  this.neighbours = [];
+  this.previousNode = null;
+  this.visited = false;
+  this.fForAStar = null;
+  this.hForAStar = null;
+  this.x = x;
+  this.y = y;
+  
+  }
+ 
+}
+/**
+Used to represent the edges
+*/
+class Edge {
+  constructor(weight, from, to) {
+    this.weight = weight;
+    this.from = from;
+    this.to = to;
+  }
+}
+/**
+Used to represent the graph
+*/
+function Graph(){
+    this.nodes = new MinHeapVertex();
+    this.edges = {};
+}
+Graph.prototype.addNode = function(vertexName, x, y) {
+    newNode = new Vertex(vertexName, x, y);
+    this.nodes.insert(newNode);
+};
+Graph.prototype.addEdge = function(vertex1, vertex2, weight) {
+ 
+ if (weight>=0){
+  let found = false;
+  let maxE = this.nodes.heap.length;
+  let i = 1;
+  
+  while ((found == false)&&(i<maxE)){
+  
+   if(this.nodes.heap[i].name===vertex1){
+  
+     edge = new Edge (weight, vertex1, vertex2);
+     this.nodes.heap[i].neighbours.push(vertex2);
+     name = vertex1+vertex2;
+     this.edges[name] = edge;
+     found = true;
+    
+   }
+  
+   i++;
+  
+  }
+ } else{
+ console.log('negative weight!');
+ }
+ 
+ 
+};
+Graph.prototype.dijkAlgo = function(startNode, goal){
+ 
+    let numOfNodes = this.nodes.heap.length;
+    let indexStart = -1; //used to check where the start node was
+ 
+   // Initialisation of graph nodes starts
+    for (let i=1; i<numOfNodes; i++){
+    	this.nodes.heap[i].previousNode = null;
+   	this.nodes.heap[i].visited = false;
+     
+    	if(this.nodes.heap[i].name === startNode){
+      	this.nodes.heap[i].distanceFromSource = 0;
+   		this.nodes.heap[i].priority = 0;
+      	indexStart = i;
+   	} else {
+     		this.nodes.heap[i].distanceFromSource = null;
+   		this.nodes.heap[i].priority = null;
+  		}
+ 
+    this.nodes.updateHeap(i);
+   
+  }
+    let nodesToCheck = new MinHeapVertex();
+  nodesToCheck.heap = JSON.parse(JSON.stringify(this.nodes.heap));
+ 
+    let tocontinue = true;
+    let v = null;      
+   
+    while (tocontinue){
+        u = nodesToCheck.getMin();
+        if (u && u.name!==goal && (u.distanceFromSource!==null || (u.previousNode && u.previousNode.distanceFromSource!==null) )){  
+           
+          neighbours = u.neighbours;
+       
+          let maxN = neighbours.length;
+    let j = 0;
+   
+      while ( (j<maxN) && (u!=goal) ){    
+             
+     v = neighbours[j];
+               let alt = u.distanceFromSource+this.edges[u.name+v].weight;
+               let maxOfGraph= this.nodes.heap.length;
+               let maxOfCopy = nodesToCheck.heap.length;
+               let k = 1;
+               let k2 = 1;
+               let index = -1;
+               let index2 = -1;
+               let found = false;
+               let found2 = false;
+               while ((found == false)&&(k<maxOfGraph)){
+        
+      if(this.nodes.heap[k].name===v){
+            index = k;
+           found = true;
+          }
+      k++;
+     
+        }
+       while ((found2 == false)&&(k2<maxOfCopy)){
+                 if(nodesToCheck.heap[k2].name===v){
+            index2 = k2;
+           found2 = true;
+          }
+     
+          k2++;
+     
+        }
+     
+     if ((index!==-1) && (!(this.nodes.heap[index].visited)) && (index2!==-1)){
+     
+        current = this.nodes.heap[index].distanceFromSource;
+     
+                  if ((current===null) || (alt<current)){
+           this.nodes.heap[index].distanceFromSource = alt;
+                 this.nodes.heap[index].priority = alt;
+           this.nodes.heap[index].previousNode=u;
+                   this.nodes.updateHeap(index);
+           nodesToCheck.heap[index2].distanceFromSource = alt;  
+                nodesToCheck.heap[index2].priority = alt;  
+           nodesToCheck.heap[index2].previousNode=u;
+           nodesToCheck.updateHeap(index2);
+   
+          }
+     
+       }
+     
+       j++;
+               
+      }
+        }
+       
+        let found3 = false;
+        let k3 = 1;
+        let max33 = this.nodes.heap.length;
+        let indexOfU = -1;
+        while ((found3 == false)&&(k3<max33)){
+   
+           if(this.nodes.heap[k3].name===u.name){
+          indexOfU = k3;
+         found3 = true;
+       }
+     
+       k3++;
+     
+     }
+       
+  this.nodes.heap[indexOfU].visited = true;
+        nodesToCheck.remove();
+        if ( (u && u.name === goal) || (nodesToCheck.heap.length===1) ){
+ 
+          tocontinue = false;
+   
+        }
+ 
+    }
+       
+if (goal){
+    path = [];
+   
+ if (u){
+     path.unshift(u.name);
+      previous = u.previousNode;
+ 
+    while (previous){
+ 
+      path.unshift(previous.name);
+      previous = previous.previousNode;
+   
+    }
+     
+    }
+ 
+   console.log('shortest path to vertex '+ goal + ' from start node '+startNode);
+  if (path[0]!==startNode){
+   path = undefined;
+    }
+ console.log(path);
+   return path;
+} else{
+  console.log('final graph with no specific end goal but with start node '+startNode+': ');
+ console.log(this);
+ return this;
+ 
+}
+    /*
+    function Dijkstra(Graph, source):
+2: for each vertex v in Graph: // Initialization
+3: dist[v] := infinity // initial distance from source to vertex v is set to infinite
+4: previous[v] := undefined // Previous node in optimal path from source
+5: dist[source] := 0 // Distance from source to source
+6: Q := the set of all nodes in Graph // all nodes in the graph are unoptimized - thus are in Q
+7: while Q is not empty: // main loop
+8: u := node in Q with smallest dist[ ]
+9: remove u from Q
+10: for each neighbor v of u: // where v has not yet been removed from Q.
+11: alt := dist[u] + dist_between(u, v)
+12: if alt < dist[v] // Relax (u,v)
+13: dist[v] := alt
+14: previous[v] := u
+15: return previous[ ]
+*/
+}
+
+Graph.prototype.dijkAlgoWithVisual = function(startNode, goal){
+ 
+	let toReturn = [];
+	let numOfNodes = this.nodes.heap.length;
+	let indexStart = -1; //used to check where the start node was
+ 
+   // Initialisation of graph nodes starts
+    for (let i=1; i<numOfNodes; i++){
+		
+		this.nodes.heap[i].previousNode = null;
+		this.nodes.heap[i].visited = false;
+		this.nodes.heap[i].distanceFromSource = null;
+   	this.nodes.heap[i].priority = null;
+     
+		if(this.nodes.heap[i].name === startNode){
+      	
+      	this.nodes.heap[i].distanceFromSource = 0;
+   		this.nodes.heap[i].priority = 0;
+      	indexStart = i;
+   
+   	} 
+   	
+    	this.nodes.updateHeap(i);
+   
+    }
+    
+    let nodesToCheck = new MinHeapVertex();
+    nodesToCheck.heap = JSON.parse(JSON.stringify(this.nodes.heap));
+ 
+    let tocontinue = true;
+    let v = null;      
+   
+    while (tocontinue){
+        
+        u = nodesToCheck.getMin();
+        toReturn.push(u.name);
+        toReturn.push('tipper:'); 
+        toReturn.push([u.name, u.distanceFromSource]);  		    
+  
+        if (u && u.name!==goal && (u.distanceFromSource!==null || (u.previousNode && u.previousNode.distanceFromSource!==null) )){  
+           
+        		neighbours = u.neighbours;
+        		
+        		let maxN = neighbours.length;
+        		let j = 0;
+   
+       		while ( (j<maxN) && (u!=goal) ){
+       			
+       			v = neighbours[j];
+       			toReturn.push(u.name+v);
+       			toReturn.push(v);
+       			
+       			let alt = u.distanceFromSource+this.edges[u.name+v].weight;
+       			let maxOfGraph = this.nodes.heap.length;
+       			let maxOfCopy = nodesToCheck.heap.length;
+       			let k = 1;
+       			let k2 = 1;
+       			let indexInGraph = -1;
+       			let indexInCopy = -1;
+       			let found = false;
+       			let found2 = false;
+       			
+       			while ((found == false)&&(k<maxOfGraph)){
+       				
+       				if(this.nodes.heap[k].name===v){
+       					indexInGraph = k;
+       					found = true;
+       				}
+       				
+       				k++;
+       			}
+       		
+       			while ((found2 == false)&&(k2<maxOfCopy)){
+                  
+                  if(nodesToCheck.heap[k2].name===v){
+             			indexInCopy = k2;
+            			found2 = true;
+          			}
+     
+     					k2++;
+     					
+     				}
+     				
+					if (indexInCopy===-1){
+					   toReturn.push('unhighlight:'); 
+    		   		toReturn.push(u.name+ v);
+					} else {
+					   toReturn.push('tipper:'); 
+     					toReturn.push([v, nodesToCheck.heap[indexInCopy].distanceFromSource]);  
+					} 				 
+    				 
+    				if ((indexInGraph!==-1) 
+    				//&& (!(this.nodes.heap[indexInGraph].visited)) 
+    				&& (indexInCopy!==-1)){
+     
+        				current = this.nodes.heap[indexInGraph].distanceFromSource;
+         			
+        				if ((current===null) || (alt<current)){
+ 
+      					if (this.nodes.heap[indexInGraph].previousNode!==null){
+    		   				toReturn.push('unhighlight:'); 
+    		   				toReturn.push(this.nodes.heap[indexInGraph].previousNode.name+ v);
+    		   			} 
+     	  	
+     	  	   toReturn.push('tipper:'); 
+     	  	   toReturn.push([this.nodes.heap[indexInGraph].name, alt]);  	
+       
+            this.nodes.heap[indexInGraph].distanceFromSource = alt;
+            this.nodes.heap[indexInGraph].priority = alt;
+            this.nodes.heap[indexInGraph].previousNode=u;
+            this.nodes.updateHeap(indexInGraph);
+            
+            nodesToCheck.heap[indexInCopy].distanceFromSource = alt;
+            nodesToCheck.heap[indexInCopy].priority = alt;  
+            nodesToCheck.heap[indexInCopy].previousNode=u;
+            nodesToCheck.updateHeap(indexInCopy);
+   
+          } else if ((current!==null) && (alt>current) && (this.nodes.heap[indexInGraph].previousNode!==null)){
+             toReturn.push('unhighlight:'); 
+     	 		 toReturn.push(u.name+ v);
+          } 
+     
+       }
+     
+       j++;
+               
+      }
+        }
+
+       nodesToCheck.remove();
+       
+       if ( (u && u.name === goal) || (nodesToCheck.heap.length===1) ){
+ 
+          tocontinue = false;
+   
+        }
+ 
+    }
+       
+if (goal){
+    path = [];
+   
+ if (u){
+     path.unshift(u.name);
+      previous = u.previousNode;
+ 
+    while (previous){
+ 
+      path.unshift(previous.name);
+      previous = previous.previousNode;
+   
+    }
+     
+    }
+ 
+   console.log('shortest path to vertex '+ goal + ' from start node '+startNode);
+  if (path[0]!==startNode){
+   path = "There is no path between the start and end nodes selected";
+    }
+   return [path, toReturn];
+} else{
+  console.log('final graph with no specific end goal but with start node '+startNode+': ');
+ console.log(this);
+ return ["No end goal selected so please look at graph for values", toReturn, this];
+ 
+}
+}
+
+
+Graph.prototype.setRegions = function(){
+
+	return [];
+	
+}
+
+ /*
+ int dijkstra(Graph& g, Node* source, Node* target) {
+int target_region = target->region(); //BOLD in paper
+// initialize all nodes:
+Node* v;
+forall_nodes(v,g) v->dist = ∞;
+// initialize priority queue:
+priority_queue q;
+source->dist = 0;
+q.insert(source);
+while ((v = q.del_min())) { // while q not empty
+if (v == target) return v->dist;
+Node* w;
+Edge* e;
+forall_adj_edges(w,v,e,g) { // scan node v
+if (! flagged(v,e,target_region)) continue; //BOLD in paper
+if (w->dist > v->dist + e->length) {
+w->dist = v->dist + e->length;
+if (q.member(w)) q.update(w);
+else q.insert(w);
+}
+}
+}
+return ∞;
+} // dijkstra
+Figure 1: Edge-flags-enhanced Dijkstra code.
+*/
+
+/**
+We present an efficient algorithm for fast and exact calculation of
+
+shortest paths in graphs with geometrical information in nodes (co-
+ordinates), e.g. road networks. The method is based on preprocess-
+ing and therefore best suited for static graphs, i.e., graphs with fixed
+
+topology and edge costs.
+In the preprocessing phase, the network is divided into regions and
+edge flags are calculated that indicate whether an edge belongs to a
+shortest path into a given region. In the path calculation step, only
+those edges need to be investigated that carry the appropriate flag.
+*/
+Graph.prototype.dijkAlgoWithPartition = function(startNode, goal){
+	
+	//int target_region = target->region(); //BOLD in paper
+	let theRegions = this.setRegions();
+	
+	
+	let toReturn = [];
+	let numOfNodes = this.nodes.heap.length;
+	let indexStart = -1; //used to check where the start node was
+	
+	// initialize all nodes:
+    for (let i=1; i<numOfNodes; i++){
+		
+		this.nodes.heap[i].previousNode = null;
+		this.nodes.heap[i].visited = false;
+		this.nodes.heap[i].distanceFromSource = null;
+   	this.nodes.heap[i].priority = null;
+     
+		if(this.nodes.heap[i].name === startNode){
+      	
+      	this.nodes.heap[i].distanceFromSource = 0;
+   		this.nodes.heap[i].priority = 0;
+      	indexStart = i;
+   
+   	} 
+   	
+    	this.nodes.updateHeap(i);
+   
+    }
+    
+    let q = new MinHeapVertex();
+    
+    q.insert(this.nodes.heap[indexStart]);
+    
+    let qNameSet = new Set();
+    
+    qNameSet.add(startNode);
+ 
+    let tocontinue = true;
+    let v = null;      
+  
+  	
+  	 while (nodesToCheck.heap.length!==1){
+  	 	
+  	 	 from = nodesToCheck.getMin();
+  	 	  
+  	 	 neighbours = from.neighbours;
+       
+       let maxN = neighbours.length;
+       
+       let j = 0;
+   
+      while ( (j<maxN) && (u!=goal) ){    
+             
+     		to = neighbours[j];
+     		
+     		let edgeFT = this.edges[from.name + to];
+         
+         let alt = from.distanceFromSource + edgeFT.weight;
+         
+         let maxOfGraph= this.nodes.heap.length;
+         
+         let k = 1;
+         let index = -1;
+         let found = false;
+         
+         while ((found == false) && (k<maxOfGraph)){
+        
+      		if(this.nodes.heap[k].name===to){
+           	 index = k;
+          	 found = true;
+         	}
+         	
+    		  k++;
+     
+        }
+     
+        if ((index!==-1) && (!(this.nodes.heap[index].visited)) && (index2!==-1)){
+     
+     			let updateNode = this.nodes.heap[index];
+        		current = updateNode.distanceFromSource;
+        		
+        		if (! flagged(from, to, theRegions)){
+        			
+        			if ((current===null) || (alt<current)){
+        			
+        				updateNode.distanceFromSource = alt;
+        				updateNode.priority = alt;
+        				updateNode.previousNode = from;
+        				this.nodes.heap[index] = updateNode;
+        			
+        				if (!(qNameSet.has(to))){
+        				
+        					qNameSet.add(t);
+        					q.insert(updateNode);
+        				
+        				} else{
+        				
+							q.updateHeap(q.heap.length-1);   
+						     			
+        				}
+        			
+        			
+        				this.nodes.updateHeap(index);
+        			
+        			}
+        			
+        		}
+        		
+       }
+  	 	
+  	 
+  	 	}
+
+   }
+   
+   
+   if (goal){
+    path = [];
+   
+ if (to){
+     path.unshift(to.name);
+      previous = to.previousNode;
+ 
+    while (previous){
+ 
+      path.unshift(previous.name);
+      previous = previous.previousNode;
+   
+    }
+     
+    }
+ 
+   console.log('shortest path to vertex '+ goal + ' from start node '+startNode);
+  if (path[0]!==startNode){
+   path = "There is no path between the start and end nodes selected";
+    }
+   return [path, toReturn];
+} else{
+  console.log('final graph with no specific end goal but with start node '+startNode+': ');
+ console.log(this);
+ return ["No end goal selected so please look at graph for values", toReturn, this];
+ 
+}
+
+}
+
+Graph.prototype.getShortestPath = function(startNode, goal){
+ 
+ this.dijkAlgo(startNode, goal);
+}
+/**
+ Calculates the h(n) of a node compared with the goal
+*/
+Graph.prototype.heuristic = function(startNode, goal){
+ 
+ let diffInX = startNode.x - goal.x;
+ let diffInY = startNode.y - goal.y;
+  let heuristicValue = Math.sqrt((diffInX * diffInX) + (diffInY * diffInY));
+  return heuristicValue;
+}
+
+	

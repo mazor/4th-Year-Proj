@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<html lang = "en">
+<head>
+<meta charset=utf-8 />
+<meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
+<title>
+Shortest Path
+</title>
+<!--<link rel="stylesheet" href="extraStyle.css"> -->
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=Promise,fetch"></script>
+
+<script src="cytoscape/documentation/js/cytoscape.min.js"></script>
+
+  <script src="https://unpkg.com/popper.js@1.16.0/dist/umd/popper.js"></script>
+	<script src="cytoscape.js-popper-master/cytoscape-popper.js"></script>
+
+	<script src="https://unpkg.com/tippy.js@5.1.3/dist/tippy-bundle.iife.min.js"></script>
+	<link rel="stylesheet" href="https://unpkg.com/tippy.js@5.1.3/dist/tippy.css" />
+
+<script src="https://unpkg.com/popper.js@1"></script>
+<script src="https://unpkg.com/tippy.js@5"></script>
+<script src="https://unpkg.com/tippy.js@5/dist/tippy-bundle.iife.js"></script>
+
+
+
+ <script src="dijksAlgo.js"></script>
+ <script src="astar.js"></script>
+<link href="style.css" rel="stylesheet" />
+</head>
+<body>
+<h1>Please pick your algorithm and choose/create a graph</h1>
+<div>
+<label>Algorithm Choice:</label>
+<select id = "algoChoice" required>
+              <option value = "1" selected>Dijkstra's algorithm Original</option>
+              <option value = "2">Dijkstra's partitioning algorithm</option>
+              <option value = "3">A* Search</option>
+              
+</select>
+</div>
+<div>
+<label for="startNode"> Start Node (case sensitive, required): </label><input id = "startNode" type="text" placeholder='A' required value='A'><br>
+<label for="endNode"> Goal Node (case sensitive, not required): </label><input id = "endNode" type="text" placeholder='F' value='F'>
+</div>
+
+
+<div id="cy"></div>
+
+   
+<div>
+<button id ="makeOwnGraph" onclick="makeOwnGraph()">I want to make my own graph</button>
+<textarea id = "makingGraphInfo" rows="15" cols="120" style="display:none"></textarea>
+
+<br> <label for="myfile">Load Graph (please choose from the 'load graphs from here' folder):</label>  <input type="file" id="myfile" name="myfile"><br><br>
+    <pre id="fileContent"></pre>
+
+<button>Randomise a graph with N nodes. N=</button> <input type='integer' placeholder='4'>
+</div>
+
+<div>
+	<button id="pageButton" onclick="start()" >Press to Start!</button>
+</div>
+
+<div>
+	<textarea id = "pathInfo" rows="2" cols="100" style="display:none"></textarea>
+</div>
+
+<script src="createTheGraph.js"></script>
+
+
+</body>
+</html>

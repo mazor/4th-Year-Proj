@@ -1,0 +1,222 @@
+<!DOCTYPE>
+
+<html>
+
+<head>
+	<title>cytoscape-popper.js tippy demo</title>
+
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+	<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+
+	<!-- for testing with local version of cytoscape.js -->
+	<!--<script src="../cytoscape.js/build/cytoscape.js"></script>-->
+
+  <script src="https://unpkg.com/popper.js@1.16.0/dist/umd/popper.js"></script>
+	<script src="cytoscape-popper.js"></script>
+
+	<script src="https://unpkg.com/tippy.js@5.1.3/dist/tippy-bundle.iife.min.js"></script>
+	<link rel="stylesheet" href="https://unpkg.com/tippy.js@5.1.3/dist/tippy.css" />
+
+	<style>
+		body {
+			font-family: helvetica neue, helvetica, liberation sans, arial, sans-serif;
+			font-size: 14px
+		}
+
+		#cy {
+			position: absolute;
+			left: 0;
+			top: 0;
+			bottom: 0;
+			right: 0;
+			z-index: 1;
+		}
+
+		h1 {
+			opacity: 0.5;
+			font-size: 1em;
+			font-weight: bold;
+		}
+
+		/* makes sticky faster; disable if you want animated tippies */
+		.tippy-popper {
+			transition: none !important;
+		}
+	</style>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+
+			var cy = window.cy = cytoscape({
+				container: document.getElementById('cy'),
+
+				style: [
+					{
+						selector: 'node',
+						style: {
+							'content': 'data(id)'
+						}
+					},
+
+					{
+						selector: 'edge',
+						style: {
+							'curve-style': 'bezier',
+							'target-arrow-shape': 'triangle',
+        'label' : 'data(weight)'
+						}
+					}
+				],
+
+				elements: {
+					nodes: [
+      { data: { id: 'A', name: 'A', weight: '0' } },
+      { data: { id: 'B', name: 'B', weight: '0' } },
+      { data: { id: 'C', name: 'C', weight: '0' } },
+      { data: { id: 'D', name: 'D', weight: '0' } },
+      { data: { id: 'E', name: 'E', weight: '0' } },
+      { data: { id: 'F', name: 'F', weight: '0' } },
+      { data: { id: 'G', name: 'G', weight: '0' } },
+    ],
+    edges: [
+      { data: { source: 'A', target: 'C', weight: '100' } },
+      { data: { source: 'A', target: 'B', weight: '3' } },
+      { data: { source: 'A', target: 'D', weight: '4' } },
+      { data: { source: 'D', target: 'C', weight: '3' } },
+      { data: { source: 'D', target: 'E', weight: '8' } },
+      { data: { source: 'E', target: 'F', weight: '10' } },
+      { data: { source: 'B', target: 'G', weight: '9' } },
+      { data: { source: 'E', target: 'G', weight: '50' } }
+    ]
+				},
+
+    position: { // the model position of the node (optional on init, mandatory after)
+        x: 100,
+        y: 100
+      },
+      grabbable: false, // whether the node can be grabbed and moved by the user
+ 
+  layout: {
+    name: 'grid',
+    padding: 10
+  }
+			});
+
+cy.on('tap', 'node', function(e){
+  var node = e.cyTarget;
+  var neighborhood = node.neighborhood().add(node);
+  cy.elements().addClass('faded');
+  neighborhood.removeClass('faded');
+});
+cy.on('tap', function(e){
+  if( e.cyTarget === cy ){
+    cy.elements().removeClass('faded');
+  }
+});
+
+			var a = cy.getElementById('A');
+			var b = cy.getElementById('B');
+			var ab = cy.getElementById('AB');
+
+			var makeTippy = function(node, text){
+				var ref = node.popperRef();
+
+				// unfortunately, a dummy element must be passed
+				// as tippy only accepts a dom element as the target
+				// https://github.com/atomiks/tippyjs/issues/661
+				var dummyDomEle = document.createElement('div');
+
+				var tip = tippy( dummyDomEle, {
+					onCreate: function(instance){ // mandatory
+						// patch the tippy's popper reference so positioning works
+						// https://atomiks.github.io/tippyjs/misc/#custom-position
+						instance.popperInstance.reference = ref;
+					},
+					lazy: false, // mandatory
+					trigger: 'manual', // mandatory
+
+					// dom element inside the tippy:
+					content: function(){ // function can be better for performance
+						var div = document.createElement('div');
+
+						div.innerHTML = text;
+
+						return div;
+					},
+
+					// your own preferences:
+					arrow: true,
+					placement: 'bottom',
+					hideOnClick: false,
+					multiple: true,
+					sticky: true
+				} );
+
+				return tip;
+			};
+
+			var tippyA = makeTippy(a, 'foo');
+
+			tippyA.show();
+
+			var tippyB = makeTippy(b, 'bar');
+
+			tippyB.show();
+
+			var tippyAB = makeTippy(ab, 'baz');
+
+			tippyAB.show();
+		});
+
+  document.getElementById('myfile').addEventListener('change', handleFileSelect, false);
+
+alert('y?');/**/
+cy.panningEnabled( false );
+cy.userPanningEnabled(false);
+cy.zoomingEnabled( false );
+cy.userZoomingEnabled( false );
+cy.boxSelectionEnabled( false );
+console.log(cy);
+console.log(cy.options);
+console.log(cy.elements);
+console.log(cy._private);
+console.log(cy._private.options.elements);
+	</script>
+</head>
+
+<body>
+
+<h1>Please pick your algorithm and choose/create a graph</h1>
+<div>
+<label>Algorithm Choice:</label>
+<select id = "algoChoice" required>
+              <option value = "1" selected>Dijkstra's algorithm Original</option>
+              <option value = "2">Dijkstra's partitioning algorithm</option>
+              <option value = "3">A* Search</option>
+              
+</select>
+</div>
+<div>
+<label for="startNode"> Start Node: </label><input id = "startNode" type="text" placeholder='A' required><br>
+<label for="endNode"> Goal Node (can be null): </label><input id = "endNode" type="text" placeholder='F'>
+</div>
+
+
+<div id="cy"></div>
+
+   
+<div>
+<button>Save graph</button>
+<br> <label for="myfile">Load Graph (please choose from the 'load graphs from here' folder):</label>  <input type="file" id="myfile" name="myfile"><br><br>
+    <pre id="fileContent"></pre>
+
+<button>Randomise a graph with N nodes. N=</button> <input type='integer' placeholder='4'>
+</div>
+
+<div>
+<button id="pageButton" onclick="start()" >Press to Start!</button>
+</div>
+
+</body>
+
+</html>

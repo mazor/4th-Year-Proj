@@ -1,0 +1,17 @@
+{ "group": "nodes", "data": { "id": "A", "name": "A" }, "position": { "x": 123.125, "y": 125 } }#
+{ "group": "nodes", "data": { "id": "B", "name": "B" }, "position": { "x": 249.375, "y": 170 } }#
+{ "group": "nodes", "data": { "id": "C", "name": "C" }, "position": {"x": 581.875, "y": 125 } }#
+{ "group": "nodes", "data": { "id": "D", "name": "D" }, "position": { "x": 505.625, "y": 110 } }#
+{ "group": "nodes", "data": { "id": "E", "name": "E" }, "position": { "x": 123.125, "y": 375 } }#
+{ "group": "nodes", "data": { "id": "F", "name": "F" }, "position": { "x": 249.375, "y": 355 } }#
+{ "group": "nodes", "data": { "id": "G", "name": "G" }, "position": { "x": 415.625, "y": 375 } }#
+{ "group": "nodes", "data": { "id": "H", "name": "H" }, "position": { "x": 500.625, "y": 324 } }#
+{ "group": "edges", "data": { "id": "AC", "name": "Ed0", "source": "A", "target": "C", "weight": 100} }#
+{ "group": "edges", "data": { "id": "AB", "name": "Ed1", "source": "A", "target": "B", "weight": 3} }#
+{ "group": "edges", "data": { "id": "AD", "name": "Ed2", "source": "A", "target": "D", "weight": 4} }#
+{ "group": "edges", "data": { "id": "DC", "name": "Ed3", "source": "D", "target": "C", "weight": 3} }#
+{ "group": "edges", "data": { "id": "DE", "name": "Ed4", "source": "D", "target": "E", "weight": 8} }#
+{ "group": "edges", "data": { "id": "EF", "name": "Ed5", "source": "E", "target": "F", "weight": 10} }#
+{ "group": "edges", "data": { "id": "BG", "name": "Ed6", "source": "B", "target": "G", "weight": 9} }#
+{ "group": "edges", "data": { "id": "EG", "name": "Ed7", "source": "E", "target": "G", "weight": 50} }#
+{ "group": "edges", "data": { "id": "AH", "name": "Ed8", "source": "A", "target": "H", "weight": 45} }

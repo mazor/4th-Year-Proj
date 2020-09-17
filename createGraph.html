@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html lang = "en">
+<head>
+<meta charset=utf-8 />
+<meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
+<title>
+Shortest Path
+</title>
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=Promise,fetch"></script>
+
+<script src="cytoscape/documentation/js/cytoscape.min.js"></script>
+
+<script src="https://unpkg.com/popper.js@1.16.0/dist/umd/popper.js"></script>
+<script src="cytoscape.js-popper-master/cytoscape-popper.js"></script>
+
+<script src="https://unpkg.com/tippy.js@5.1.3/dist/tippy-bundle.iife.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/tippy.js@5.1.3/dist/tippy.css" />
+
+<script src="https://unpkg.com/popper.js@1"></script>
+<script src="https://unpkg.com/tippy.js@5"></script>
+<script src="https://unpkg.com/tippy.js@5/dist/tippy-bundle.iife.js"></script>
+ 
+<script src="dijksAlgo.js"></script>
+<script src="astar.js"></script>
+<script src="FileSaver.js-master/src/FileSaver.js"></script>
+<link href="style.css" rel="stylesheet" />
+</head>
+
+<body>
+	<h1>Please pick your algorithm and choose/create a graph</h1>
+	<div>
+		<label>Algorithm Choice:</label>
+		
+		<select id = "algoChoice" required onchange="updateAlgorithm()">
+              <option value = "1" selected>Dijkstra's algorithm Original</option>
+              <option value = "2">Dijkstra's partitioning algorithm</option>
+              <option value = "3">A* Search</option>   
+		</select>
+
+		<label>Speed of visualization:</label> 
+		
+		<select id = "speedChoice" required>
+              <option value = "1000">Slow</option>
+              <option value = "500" selected>Average</option>
+              <option value = "50">Fast</option>
+              
+		</select>
+	</div>
+
+<div id="cy"></div>
+
+<div id="left">
+
+	<label for="startNode"> Start Node (case sensitive, required): </label><input id = "startNode" type="text" placeholder='node1' required value='node1'>
+	<br>
+	<label for="endNode"> Goal Node (case sensitive, not required except for A*): </label><input id = "endNode" tyqpe="text" placeholder='node4' value='node4'>
+	<br>
+	<br>
+	<button id="pageButton" onclick="start()" >Press to Start Chosen Algorithm!</button>
+	<button id ="makeOwnGraph" onclick="makeOwnGraph()">I want to make my own graph</button>
+	<button id="compareAlgo" class="compareAlgo" onclick="compareAlgorithms()">Compare Algorithms </button>
+	<div class="modalForComparison">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+			<h1>Time taken for each algorithm to run 1000 times with the start and end nodes selected</h1>
+            <p>Dijkstra's Algorithm - Original</p>
+			<div class="container">
+				<div id="dijkOrigBar" class="algorithms dijkOrig"></div>
+			</div>
+			<p>Dijkstra's partitioning algorithm</p>
+			<div class="container">
+				<div id="dijkPartBar" class="algorithms dijkPart"></div>
+			</div>
+
+			<p>A* Search</p>
+			<div class="container">
+				<div id="aStarBar" class="algorithms aStar"></div>
+			</div>
+			<p>Path Was:</p>
+			<h4 id ="pathForComparison"> </h4>
+        </div>
+    </div>
+
+	<textarea id = "makingGraphInfo" rows="15" cols="120" style="display:none"></textarea>
+
+	<br> <label for="myfile">Load Graph (please choose from the 'load graphs from here' folder):</label>  
+	<input type="file" id="myfile" name="myfile">
+	<br> <button id="createRandom" onclick="createRandomGraph()">Randomise a graph with N nodes. N=</button>
+	<input id ="nodeNumber" type='integer' min=1 value=4><button id="changeEditStatus" onclick="changeEditStatus()" style="display:none">Begin Edit </button>
+	<label id="fromLbl" for="from"  style="display:none"> From (required): </label><input id = "from" type="text" value='node1'  style="display:none">
+	<label id="toLbl" for="to"  style="display:none"> To (required): </label><input id = "to" type="text" value='node2'  style="display:none">
+<button id='add' onClick='addEdge()' style="display:none">Add Edge </button> <button id='remove' onClick='removeEdge()'  style="display:none">Remove Edge</button>
+<button id ='save' onClick = 'saveCyGraphToFile()' style="display:none"> Save Graph To File </button>
+<br>
+	<textarea id = "pathInfo" rows="2" cols="75" style="display:none"></textarea>
+
+</div>
+<div id = "right">
+<textarea id = "algoInfo" rows="15" cols="40" style="display:block"></textarea>
+<div>
+
+<script src="createTheGraph.js"></script>
+</body>
+</html>
